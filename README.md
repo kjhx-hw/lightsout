@@ -1,2 +1,1 @@
-# lightsout
- Lights Out! with Windows Forms.
+![Logo Header](.github/IMAGES/header.png)
