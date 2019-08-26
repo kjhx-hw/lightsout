@@ -25,17 +25,25 @@ namespace lightsout {
             grid = new bool[NumCells, NumCells];
             for (int r = 0; r < NumCells; r++) {
                 for (int c = 0; c < NumCells; c++) {
-                    grid[r, c] = true;
+                    grid[r, c] = rand.Next(2) == 1;
                 }
             }
         }
 
         private void newToolStripMenuItem_Click(object sender, EventArgs e) {
-            // Create new game
+            newGameButton_Click(sender, e);
         }
 
         private bool PlayerWon() {
-            return false;
+            bool won = true;
+            for (int r = 0; r < NumCells; r++) {
+                for (int c = 0; c < NumCells; c++) {
+                    if (grid[r, c]) {
+                        won = false;
+                    }
+                }
+            }
+            return won;
         }
 
         private void button1_Click(object sender, EventArgs e) {
@@ -47,7 +55,13 @@ namespace lightsout {
         }
 
         private void newGameButton_Click(object sender, EventArgs e) {
-            // Create new game
+            for (int r = 0; r < NumCells; r++) {
+                for (int c = 0; c < NumCells; c++) {
+                    grid[r, c] = rand.Next(2) == 1;
+                }
+            }
+
+            this.Invalidate();
         }
 
         private void MainForm_Paint(object sender, PaintEventArgs e) {
@@ -96,6 +110,11 @@ namespace lightsout {
             if (PlayerWon()) {
                 MessageBox.Show(this, "Congratulations! You've won!", "Lights Out!", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
+        }
+
+        private void aboutToolStripMenuItem_Click(object sender, EventArgs e) {
+            AboutForm aboutBox = new AboutForm();
+            aboutBox.ShowDialog(this);
         }
     }
 }
