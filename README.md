@@ -1,10 +1,5 @@
 ![Logo Header](.github/IMAGES/header.png)
-<p align="center">
-  <strong>
-    Built by <a href="https://github.com/kjhx">Kyle Huggins</a> and <a href="https://github.com/fairytamerryles">Riley Judd</a> for COMP 4450.
-  </strong>
-  <br>
-  <small>
-    Built in Visual Studio 2017.
-  </small>
-</p>
+
+Built by [Kyle Huggins](https://github.com/kjhx/) and [Riley Judd](https://github.com/fairytamerryles/) in VS17 for COMP 4450.
+
+[Repository link](https://github.com/kjhx/lightsout).
