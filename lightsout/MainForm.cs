@@ -9,27 +9,17 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace lightsout {
+    
+
+
     public partial class MainForm : Form {
+        LightsOutGame game = new LightsOutGame();
         private const int GridOffset = 25;  // Distance from upper left side of window
         private const int GridLength = 200;
-        private int NumCells = NumCellsx3;
-        private const int NumCellsx3 = 3;
-        private const int NumCellsx4 = 4;
-        private const int NumCellsx5 = 5;
-
-        private bool[,] grid;
-        private Random rand;
 
         public MainForm() {
             InitializeComponent();
-
-            rand = new Random();
-            grid = new bool[NumCells, NumCells];
-            for (int r = 0; r < NumCells; r++) {
-                for (int c = 0; c < NumCells; c++) {
-                    grid[r, c] = rand.Next(2) == 1;
-                }
-            }
+            game.NewGame();
         }
 
         private void newToolStripMenuItem_Click(object sender, EventArgs e) {
@@ -37,15 +27,7 @@ namespace lightsout {
         }
 
         private bool PlayerWon() {
-            bool won = true;
-            for (int r = 0; r < NumCells; r++) {
-                for (int c = 0; c < NumCells; c++) {
-                    if (grid[r, c]) {
-                        won = false;
-                    }
-                }
-            }
-            return won;
+            return game.IsGameOver();
         }
 
         private void button1_Click(object sender, EventArgs e) {
@@ -57,24 +39,19 @@ namespace lightsout {
         }
 
         private void newGameButton_Click(object sender, EventArgs e) {
-            for (int r = 0; r < NumCells; r++) {
-                for (int c = 0; c < NumCells; c++) {
-                    grid[r, c] = rand.Next(2) == 1;
-                }
-            }
-
+            game.NewGame();
             this.Invalidate();
         }
 
         private void MainForm_Paint(object sender, PaintEventArgs e) {
             Graphics g = e.Graphics;
 
-            for (int r = 0; r < NumCells; r++) {
-                for (int c = 0; c < NumCells; c++) {
+            for (int r = 0; r < game.GridSize; r++) {
+                for (int c = 0; c < game.GridSize; c++) {
                     Brush brush;
                     Pen pen;
 
-                    if (grid[r, c]) {
+                    if (game.GetGridValue(r, c)) {
                         pen = Pens.Black;
                         brush = Brushes.White;
                     } else {
@@ -82,27 +59,27 @@ namespace lightsout {
                         brush = Brushes.Black;
                     }
 
-                    int x = c * (GridLength/NumCells) + GridOffset;
-                    int y = r * (GridLength / NumCells) + GridOffset;
+                    int x = c * (GridLength/game.GridSize) + GridOffset;
+                    int y = r * (GridLength / game.GridSize) + GridOffset;
 
-                    g.DrawRectangle(pen, x, y, (GridLength / NumCells), (GridLength / NumCells));
-                    g.FillRectangle(brush, x + 1, y + 1, (GridLength / NumCells) - 1, (GridLength / NumCells) - 1);
+                    g.DrawRectangle(pen, x, y, (GridLength / game.GridSize), (GridLength / game.GridSize));
+                    g.FillRectangle(brush, x + 1, y + 1, (GridLength / game.GridSize) - 1, (GridLength / game.GridSize) - 1);
                 }
             }
         }
 
         private void MainForm_MouseDown(object sender, MouseEventArgs e) {
-            if (e.X < GridOffset || e.X > (GridLength / NumCells) * NumCells + GridOffset || e.Y < GridOffset || e.Y > (GridLength / NumCells) * NumCells + GridOffset) {
+            if (e.X < GridOffset || e.X > (GridLength / game.GridSize) * game.GridSize + GridOffset || e.Y < GridOffset || e.Y > (GridLength / game.GridSize) * game.GridSize + GridOffset) {
                 return;
             }
 
-            int r = (e.Y - GridOffset) / (GridLength / NumCells);
-            int c = (e.X - GridOffset) / (GridLength / NumCells);
+            int r = (e.Y - GridOffset) / (GridLength / game.GridSize);
+            int c = (e.X - GridOffset) / (GridLength / game.GridSize);
 
             for (int i = r-1; i <= r+1; i++) {
                 for (int j = c-1; j <= c+1; j++) {
-                    if (i >= 0 && i < NumCells && j >= 0 && j < NumCells) {
-                        grid[i, j] = !grid[i, j];
+                    if (i >= 0 && i < game.GridSize && j >= 0 && j < game.GridSize) {
+                       game.SetGridValue(i, j, !game.GetGridValue(i,j));
                     }
                 }
             }
@@ -121,23 +98,110 @@ namespace lightsout {
 
         private void x3ToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            NumCells = NumCellsx3;
-            grid = new bool[NumCells, NumCells];
+            game.GridSize = 3;
             newGameButton_Click(sender, e);
         }
 
         private void x4ToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            NumCells = NumCellsx4;
-            grid = new bool[NumCells, NumCells];
+            game.GridSize = 4;
             newGameButton_Click(sender, e);
         }
 
         private void x5ToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            NumCells = NumCellsx5;
-            grid = new bool[NumCells, NumCells];
+            game.GridSize = 5;
             newGameButton_Click(sender, e);
+        }
+    }
+
+    class LightsOutGame
+    {
+        private int gridSize = 3;
+        private bool[,] grid;
+        private Random rand;
+        public const int MaxGridSize = 7;
+        public const int MinGridSize = 3;
+
+        public int GridSize
+        {
+            get
+            {
+                return gridSize;
+            }
+            set
+            {
+                if (value >= MinGridSize && value <= MaxGridSize)
+                {
+                    gridSize = value;
+                    grid = new bool[gridSize, gridSize];
+                }
+                else
+                {
+                    throw new ArgumentOutOfRangeException("NumCells must be between " + MinGridSize + " and " + MaxGridSize + ".");
+                }
+            }
+        }
+
+        public LightsOutGame()
+        {
+            rand = new Random();
+
+            GridSize = MinGridSize;
+        }
+
+        public bool GetGridValue(int row, int col)
+        {
+            return grid[row, col];
+        }
+
+        public void SetGridValue(int row, int col, bool value)
+        {
+            grid[row, col] = value;
+        }
+
+        public void NewGame()
+        {
+            for (int r = 0; r < gridSize; r++)
+            {
+                for (int c = 0; c < gridSize; c++)
+                {
+                    grid[r, c] = rand.Next(2) == 1;
+                }
+            }
+        }
+
+        public void Move(int row, int col)
+        {
+            if (row < 0 || row >= gridSize || col < 0 || col >= gridSize)
+            {
+                throw new ArgumentException("Row or column is outsize the legal range of 0 to " + (gridSize - 1));
+            }
+            for (int i = row - 1; i <= row + 1; i++)
+            {
+                for (int j = col - 1; j <= col + 1; j++)
+                {
+                    if (i >= 0 && i < gridSize && j >= 0 && j < gridSize)
+                    {
+                        grid[i, j] = !grid[i, j];
+                    }
+                }
+            }
+        }
+
+        public bool IsGameOver()
+        {
+            for (int r = 0; r < gridSize; r++)
+            {
+                for (int c = 0; c < gridSize; c++)
+                {
+                    if (grid[r, c])
+                    {
+                        return false;
+                    }
+                }
+            }
+            return true;
         }
     }
 }
